@@ -206,6 +206,20 @@ resource "google_sql_user" "additional_users" {
     google_sql_database_instance.replicas,
   ]
 }
+   
+
+resource "google_sql_user" "additional_users" {
+  for_each = local.users
+  project  = var.project_id
+  name     = each.value.name
+  password = coalesce(each.value["password"], random_id.additional_passwords[each.value.name].hex)
+  instance = google_sql_database_instance.default.name
+  depends_on = [
+    null_resource.module_depends_on,
+    google_sql_database_instance.default,
+    google_sql_database_instance.replicas,
+  ]
+}
 
 resource "google_project_iam_member" "iam_binding" {
   for_each = {
